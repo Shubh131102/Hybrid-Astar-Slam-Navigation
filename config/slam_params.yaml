@@ -1,5 +1,217 @@
-mode: mapping
-resolution: 0.05
-map_update_interval: 2.0
-publish_period: 1.0
-max_laser_range: 10.0
+mode: mapping  # Options: mapping, localization
+
+###############################################################################
+# Map Parameters
+###############################################################################
+map:
+  resolution: 0.05              # Map resolution in meters/pixel (5cm)
+  map_update_interval: 2.0      # Seconds between map updates
+  publish_period: 1.0           # Map publish frequency (Hz)
+  
+  # Map size and origin
+  map_size_x: 50.0             # Meters
+  map_size_y: 50.0             # Meters
+  origin_x: -25.0              # Map origin x
+  origin_y: -25.0              # Map origin y
+  
+  # Occupancy grid thresholds
+  occupied_threshold: 0.65     # Probability threshold for occupied
+  free_threshold: 0.25         # Probability threshold for free
+  unknown_threshold: 0.5       # Initial probability
+
+###############################################################################
+# Laser Scan Parameters
+###############################################################################
+laser:
+  max_laser_range: 10.0        # Maximum range to use (meters)
+  min_laser_range: 0.12        # Minimum valid range (meters)
+  max_range_cutoff: 3.5        # Actual sensor max range
+  
+  # Scan filtering
+  angle_min: -3.14159          # Minimum scan angle (radians)
+  angle_max: 3.14159           # Maximum scan angle (radians)
+  scan_decimation: 1           # Use every Nth scan point
+  
+  # Noise model
+  range_noise_std: 0.02        # Range measurement std dev (meters)
+  angle_noise_std: 0.01        # Angular measurement std dev (radians)
+
+###############################################################################
+# Odometry Parameters
+###############################################################################
+odometry:
+  # Motion model noise
+  linear_noise: 0.1            # Linear motion noise (m/m)
+  angular_noise: 0.2           # Angular motion noise (rad/rad)
+  
+  # Minimum motion thresholds
+  min_update_distance: 0.1     # Meters
+  min_update_angle: 0.1        # Radians
+
+###############################################################################
+# Feature Extraction
+###############################################################################
+features:
+  # Corner detection
+  corner_detector: "harris"    # Options: harris, shi_tomasi, fast
+  max_corners: 500             # Maximum corners per frame
+  quality_level: 0.01          # Corner quality threshold
+  min_distance: 0.1            # Minimum distance between corners (meters)
+  
+  # Feature matching
+  descriptor_type: "orb"       # Options: orb, surf, sift
+  max_descriptor_distance: 50  # Maximum distance for valid match
+  min_matches: 15              # Minimum matches for valid correspondence
+
+###############################################################################
+# Loop Closure Detection
+###############################################################################
+loop_closure:
+  enabled: true
+  
+  # Detection thresholds
+  min_chain_size: 10           # Minimum consecutive detections
+  distance_threshold: 0.5      # Maximum distance for closure (meters)
+  angle_threshold: 0.3         # Maximum angle difference (radians)
+  score_threshold: 0.7         # Minimum similarity score
+  
+  # Search parameters
+  search_radius: 10.0          # Search radius for candidates (meters)
+  temporal_window: 30          # Minimum time separation (seconds)
+  
+  # Verification
+  ransac_threshold: 0.05       # RANSAC inlier threshold (meters)
+  min_inliers: 10              # Minimum inliers for valid closure
+
+###############################################################################
+# Pose Graph Optimization
+###############################################################################
+optimization:
+  # Solver parameters
+  solver_type: "levenberg_marquardt"  # Options: gauss_newton, levenberg_marquardt
+  max_iterations: 100          # Maximum optimization iterations
+  convergence_threshold: 1e-6  # Convergence criterion
+  
+  # Information matrix weights
+  odometry_information: [100.0, 100.0, 100.0]     # [x, y, theta]
+  scan_matching_information: [500.0, 500.0, 1000.0]
+  loop_closure_information: [200.0, 200.0, 500.0]
+  
+  # Optimization frequency
+  optimize_every_n_nodes: 10   # Nodes between optimizations
+  continuous_optimization: false
+
+###############################################################################
+# Scan Matching
+###############################################################################
+scan_matching:
+  # Algorithm selection
+  algorithm: "icp"             # Options: icp, gicp, ndt
+  
+  # ICP parameters
+  max_iterations: 50
+  transformation_epsilon: 1e-8
+  euclidean_fitness_epsilon: 1e-6
+  max_correspondence_distance: 0.5
+  
+  # Covariance estimation
+  estimate_covariance: true
+  
+  # Outlier rejection
+  use_reciprocal_correspondences: true
+  inlier_threshold: 0.05
+
+###############################################################################
+# Multi-Sensor Fusion
+###############################################################################
+sensor_fusion:
+  # Sensor weights
+  lidar_weight: 0.6
+  odometry_weight: 0.3
+  imu_weight: 0.1
+  
+  # IMU integration
+  use_imu: true
+  imu_topic: "/imu"
+  gyro_bias_std: 0.001         # Gyroscope bias std dev (rad/s)
+  accel_bias_std: 0.01         # Accelerometer bias std dev (m/s²)
+  
+  # Sensor synchronization
+  sync_tolerance: 0.1          # Maximum time difference (seconds)
+
+###############################################################################
+# Map Management
+###############################################################################
+map_management:
+  # Submap parameters
+  use_submaps: true
+  submap_size: 100             # Nodes per submap
+  submap_overlap: 10           # Overlapping nodes
+  
+  # Memory management
+  max_map_size: 1000000        # Maximum cells in memory
+  prune_old_scans: true
+  max_scan_history: 1000       # Maximum stored scans
+
+###############################################################################
+# Localization Mode (when mode: localization)
+###############################################################################
+localization:
+  # Particle filter parameters
+  num_particles: 500
+  
+  # Resampling
+  resample_threshold: 0.5
+  
+  # Update thresholds
+  update_min_d: 0.2
+  update_min_a: 0.2
+  
+  # Recovery behavior
+  recovery_enabled: true
+  recovery_alpha_slow: 0.001
+  recovery_alpha_fast: 0.1
+
+###############################################################################
+# Visualization and Debug
+###############################################################################
+visualization:
+  publish_pose_graph: true
+  publish_scan_matches: true
+  publish_loop_closures: true
+  visualization_rate: 1.0      # Hz
+
+debug:
+  verbose: false
+  save_scans: false
+  log_scan_matching: false
+  log_loop_closures: true
+
+###############################################################################
+# Performance Tuning
+###############################################################################
+performance:
+  # Threading
+  num_threads: 4               # Parallel processing threads
+  
+  # Computational limits
+  max_processing_time: 0.1     # Maximum time per iteration (seconds)
+  
+  # Queue sizes
+  scan_queue_size: 10
+  odometry_queue_size: 100
+
+###############################################################################
+# Output
+###############################################################################
+output:
+  # Save map
+  save_map_on_shutdown: true
+  map_save_path: "maps/slam_map"
+  
+  # Trajectory logging
+  save_trajectory: true
+  trajectory_save_path: "logs/trajectory.txt"
+  
+  # Map format
+  map_format: "pgm"            # Options: pgm, png, yaml

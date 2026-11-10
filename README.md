@@ -1,118 +1,49 @@
-# SLAM Navigation Stack — UCR Robotics Project
+# SLAM and Autonomous Exploration on TurtleBot3
 
-Full SLAM and navigation stack on TurtleBot3 in Gazebo simulation and 
-real-world testbed — covering mapping, localization, path planning, and 
-Nav2 integration.
+A TurtleBot3 that maps an unknown indoor space on its own. SLAM Toolbox builds the map, Nav2 plans with A* and avoids obstacles with DWB, and frontier exploration decides where to go next. Built at UC Riverside.
 
----
+<p align="center">
+  <img src="docs/Image%201.jpeg" alt="RViz occupancy grid map built during autonomous exploration" width="560">
+</p>
 
-## Key Results
+## Results
 
-- 15% map accuracy improvement via Nav2 frontier exploration parameter tuning
-- 10Hz real-time mapping performance
-- Stable localization over 10m trajectories
-- Successful autonomous exploration of unknown indoor environments
+| | |
+|---|---|
+| Map accuracy improvement from tuning frontier exploration | **15%** |
+| Real-time mapping rate | 10 Hz |
+| Localization | Stable over 10 m trajectories |
 
----
-
-## Stack Overview
+## Stack
 
 | Component | Implementation |
-|-----------|---------------|
-| Mapping | SLAM Toolbox, Gmapping, Cartographer |
-| Localization | AMCL with adaptive resampling |
-| Global Planning | A* |
-| Local Planning | DWB, TEB |
+|---|---|
+| Mapping | SLAM Toolbox |
+| Localization | AMCL |
+| Global planning | A* |
+| Local planning | DWB |
 | Navigation | Nav2 |
-| Sensor | LiDAR (LaserScan) |
-| Platform | TurtleBot3 Burger |
+| Sensor | 2D LiDAR |
+| Platform | TurtleBot3 Burger, Gazebo |
 
----
+## What's in this repo
 
-## Repo Layout
-```
-slam_nav_tb3/
-├── src/          # ROS2 packages and nodes
-├── launch/       # Bringup and Nav2 launch files
-├── config/       # Costmap, planner, controller parameters
-├── maps/         # Saved maps (YAML + PGM)
-├── scripts/      # Helper scripts (bag-to-map, teleop logging)
-├── media/        # GIF and MP4 demos
-└── docs/         # Project report and diagrams
-```
+| Path | Contents |
+|---|---|
+| `launch/slam_sim.launch.py` | Starts Gazebo, the robot, and SLAM Toolbox |
+| `launch/nav2.launch.py` | Starts Nav2 with the tuned parameters |
+| `config/slam_params.yaml` | SLAM Toolbox parameters |
+| `config/nav2_params.yaml` | Costmap, planner, and controller parameters |
+| `docs/` | Map screenshots |
 
----
+## Run it
 
-## Quick Start
 ```bash
-# Launch simulation
-ros2 launch slam_nav_tb3 slam_sim.launch.py
-
-# Run Nav2 with saved map
-ros2 launch slam_nav_tb3 nav2.launch.py map:=maps/ucr_lab.yaml
-
-# Build workspace
-cd ~/slam_ws
-colcon build
-source install/setup.bash
+export TURTLEBOT3_MODEL=burger
+ros2 launch launch/slam_sim.launch.py
+ros2 launch launch/nav2.launch.py
 ```
 
----
+## License
 
-## Key Components
-
-### SLAM Mapping
-- SLAM Toolbox for real-time occupancy grid mapping
-- Frontier-based autonomous exploration via Nav2
-- Parameter tuning achieved 15% accuracy improvement over baseline
-
-### Localization
-- AMCL particle filter for pose estimation
-- Adaptive resampling for dynamic environments
-- Validated over 10m trajectories in UCR lab
-
-### Path Planning
-- Global: A* for optimal path generation
-- Local: DWB for real-time obstacle avoidance
-- Velocity constraints tuned for safe indoor navigation
-
----
-
-## Configuration
-
-Key parameter files in config/:
-- costmap_params.yaml — Obstacle inflation, footprint
-- planner_params.yaml — A* and DWB tuning
-- controller_params.yaml — Velocity limits and constraints
-- slam_params.yaml — SLAM Toolbox configuration
-
----
-
-## Troubleshooting
-
-Map not building:
-```bash
-ros2 topic echo /scan        # Verify LiDAR data
-ros2 topic echo /odom        # Verify odometry
-ros2 run tf2_tools view_frames  # Check TF tree
-```
-
-Nav2 not navigating:
-```bash
-ros2 topic list | grep nav   # Check Nav2 topics active
-ros2 node list               # Verify all nodes running
-```
-
-Localization drift:
-- Increase AMCL particle count in config
-- Verify map matches environment
-- Check odometry calibration
-
----
-
-## Notes
-
-- Test in simulation before real hardware deployment
-- Save maps after successful exploration runs
-- Tune local planner parameters for different environments
-- Source workspace before running any ROS2 commands
+MIT
